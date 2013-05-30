@@ -134,7 +134,7 @@ module Gattica
       query_string = build_query_string(args,@profile_id)
       @logger.debug(query_string) if @debug
       create_http_connection('www.googleapis.com')
-      data = do_http_get("/analytics/v3/data?#{query_string}")
+      data = do_http_get("/analytics/v3/data/ga?#{query_string}")
       return DataSet.new(JSON.parse(data))
     end
 
