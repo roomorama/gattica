@@ -8,7 +8,7 @@ module Gattica
     def to_h
       output = {}
       instance_variables.each do |var|
-        output.merge!({ var[1..-1] => instance_variable_get(var) }) unless var == '@xml'    # exclude the whole XML dump
+        output.merge!({ var[1..-1] => instance_variable_get(var) }) unless var == '@json'    # exclude the whole JSON dump
       end
       output.tap { |h| h.include? HashExtensions }
     end
@@ -24,12 +24,12 @@ module Gattica
       to_h.to_query
     end
 
-    # Return the raw XML (if the object has a @xml instance variable, otherwise convert the object itself to xml)
-    def to_xml
-      if @xml
-        @xml
+    # Return the raw JSON (if the object has a @json instance variable, otherwise convert the object itself to json)
+    def to_json
+      if @json
+        @json
       else
-        self.to_xml
+        self.to_json
       end
     end
 

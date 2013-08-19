@@ -1,14 +1,14 @@
 module Gattica
-  
+
   # Encapsulates the data returned by the GA API
   class DataSet
     include Convertible
 
     attr_reader :total_results, :start_index, :items_per_page, :start_date,
-                :end_date, :points, :xml, :sampled_data, :total_for_all_results
+                :end_date, :points, :json, :sampled_data, :total_for_all_results
 
     def initialize(json)
-      @xml = json.to_s
+      @json = json.to_s
       @total_results = json['totalResults'].to_i
       @start_index = json['query']['start-index'].to_i
       @items_per_page = json['itemsPerPage'].to_i
@@ -16,7 +16,7 @@ module Gattica
       @end_date = Date.parse(json['query']['end-date'])
       @sampled_data = json['containsSampledData']
       @total_for_all_results = json['totalsForAllResults']
-      @points = json['rows'].collect { |entry| DataPoint.new(entry) }
+      @points = json['rows'].collect { |entry| DataPoint.new(entry, json['columnHeaders']) }
     end
 
     # Returns a string formatted as a CSV containing just the data points.
@@ -34,7 +34,7 @@ module Gattica
         @points.first.dimensions.map {|d| d.keys.first}.each { |c| columns << c }
         @points.first.metrics.map {|m| m.keys.first}.each { |c| columns << c }
       end
-      output = CSV.generate_line(columns) 
+      output = CSV.generate_line(columns)
       @points.each do |point|
         output += point.to_csv(format)
       end

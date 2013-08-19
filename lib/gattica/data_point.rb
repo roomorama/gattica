@@ -8,19 +8,19 @@ module Gattica
 
     include Convertible
 
-    attr_reader :id, :updated, :title, :dimensions, :metrics, :xml
+    attr_reader :dimensions, :metrics, :json
 
     # Parses the JSON <row> element
-    def initialize(xml)
-      @xml = xml.to_s
-      @id = xml.at('id').inner_html
-      @updated = DateTime.parse(xml.at('updated').inner_html)
-      @title = xml.at('title').inner_html
-      @dimensions = xml.search('dxp:dimension').collect do |dimension|
-        { dimension.attributes['name'].split(':').last.to_sym => dimension.attributes['value'].split(':').last }
-      end
-      @metrics = xml.search('dxp:metric').collect do |metric|
-        { metric.attributes['name'].split(':').last.to_sym => metric.attributes['value'].split(':').last.to_f }
+    def initialize(json, column_headers)
+      @json = json.to_s
+      @dimensions = []
+      @metrics = []
+      column_headers.each_with_index do |column_header, index|
+        if column_header['columnType'] == 'DIMENSION'
+          @dimensions << {column_header['name'].split(':').last.to_sym => json[index]}
+        elsif column_header['columnType'] == 'METRIC'
+          @metrics << {column_header['name'].split(':').last.to_sym => json[index]}
+        end
       end
     end
 
@@ -32,8 +32,8 @@ module Gattica
 
       # only output
       case format
-      when :long
-        [@id, @updated, @title].each { |c| columns << c }
+        when :long
+          [@id, @updated, @title].each { |c| columns << c }
       end
 
       # output all dimensions
@@ -41,7 +41,7 @@ module Gattica
       # output all metrics
       @metrics.map {|m| m.values.first}.each { |c| columns << c }
 
-      output = CSV.generate_line(columns)      
+      output = CSV.generate_line(columns)
 
     end
 
